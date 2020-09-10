@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from "typeorm";
-import { Article } from './article.entity';
+import { Article } from '../articles/articles.entity';
 import { ModifyTime } from '../common/entities/modifyTime.entity';
 
 @Entity()

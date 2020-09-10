@@ -54,7 +54,7 @@ export class UsersService {
 
     async createUser(user: CreateUserDto): Promise<User> {
         user.password = await bcrypt.hash(user.password, 10);
-        return await this.userRepository.save(this.userRepository.create(user));
+        return await this.userRepository.insert(user);
     }
 
     async updateUser(id: number, updates: UpdateUserDto): Promise<User> {

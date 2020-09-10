@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, OneToMany, Column, CreateDateColumn } from "typeorm";
-import { Article } from "../entities/article.entity";
+import { Article } from "../articles/articles.entity";
 import { ModifyTime } from "../common/entities/modifyTime.entity";
 
 @Entity()
