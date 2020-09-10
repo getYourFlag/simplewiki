@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
-import { ModifyTime } from './embedded/modifyTime.entity';
+import { ModifyTime } from '../common/entities/modifyTime.entity';
 
 @Entity()
 export class Suggestion {

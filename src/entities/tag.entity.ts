@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from "typeorm";
 import { Article } from './article.entity';
-import { ModifyTime } from './embedded/modifyTime.entity';
+import { ModifyTime } from '../common/entities/modifyTime.entity';
 
 @Entity()
 export class Tag {
