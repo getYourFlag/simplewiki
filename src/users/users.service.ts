@@ -21,8 +21,7 @@ export class UsersService {
     }
 
     private async findUserByIdAndAuthorize(id: number, password: string): Promise<User> {
-        const user = await this.userRepository
-            .findOne(id, {
+        const user = await this.userRepository.findOne(id, {
                 select: ['username', 'password', 'nick', 'permission', 'last_login', 'created_at', 'updated_at']
             })
         if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
@@ -80,4 +79,11 @@ export class UsersService {
         return true;
     }
 
+    async getUsersCount(): Promise<Number> {
+        return await this.userRepository.find({
+            where: {
+                permission: 127
+            }
+        }).getCount();
+    }
 }
