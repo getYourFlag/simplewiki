@@ -7,5 +7,6 @@ import { TagsService } from './tags.service';
     imports: [ AuthModule ],
     controllers: [ TagsController, TagsAdminController ],
     providers: [ TagsService ],
+    exports: [ TagsService ]
 })
 export class TagsModule {}

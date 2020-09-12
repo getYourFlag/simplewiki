@@ -39,4 +39,9 @@ export class TagsAdminController {
     async createTag(@Body() data: TagsDto): Promise<Tag> {
         return await this.service.createTag(data);
     }
+
+    @Put(':id')
+    async updateTag(@Param('id') uuid: string, @Body() data: TagsDto): Promise<Tag> {
+        return await this.service.updateTag(uuid, data);
+    }
 }

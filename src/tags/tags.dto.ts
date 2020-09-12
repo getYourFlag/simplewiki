@@ -1,4 +1,4 @@
-import { IsOptional, Length, IsString } from 'class-validator';
+import { IsOptional, Length, IsString, IsUUID, ArrayUnique, IsArray } from 'class-validator';
 
 export class TagsDto {
     @Length(1, 50)
@@ -10,4 +10,9 @@ export class TagsDto {
     @IsOptional()
     @IsString()
     description: string;
+
+    @IsOptional()
+    @IsArray()
+    @ArrayUnique()
+    articles: Array<string>;
 }

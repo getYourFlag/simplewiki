@@ -1,27 +1,30 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { Connection, MoreThanOrEqual, Raw } from 'typeorm';
+import { Connection, In, MoreThanOrEqual, Raw } from 'typeorm';
 import { Article } from './articles.entity';
 import { ConfigService } from '@nestjs/config';
 import { ArticleDeleteConfirmationDto, CreateArticleDto } from './articles.dto';
 import { TokenDto } from 'src/users/users.dto';
+import { Tag } from 'src/tags/tags.entity';
 
 const selectedColumns = ['id', 'uuid', 'title', 'url', 'content', 'created_at', 'updated_at'];
 
 @Injectable()
 export class ArticlesService {
-    private repository;
+    private articleRepository;
+    private tagRepository;
     private articlesPerPage;
 
     constructor(
         connection: Connection,
         configService: ConfigService
     ) {
-        this.repository = connection.getRepository(Article);
+        this.articleRepository = connection.getRepository(Article);
+        this.tagRepository = connection.getRepository(Tag);
         this.articlesPerPage = configService.get<Number>('RECORDS_PER_PAGE');
     }
 
     public async getArticlesList(permission: number, page: number = 1): Promise<Article[]> {
-        return await this.repository.find({
+        return await this.articleRepository.find({
             select: selectedColumns,
             where: {
                 permission: MoreThanOrEqual(permission),
@@ -38,14 +41,14 @@ export class ArticlesService {
     }
 
     public async getArticleById(permission: number, id: string): Promise<Article> {
-        const article = await this.repository.findOne({
+        const article = await this.articleRepository.findOne({
             select: selectedColumns,
             where: {
                 'id': id,
                 'permission': MoreThanOrEqual(permission),
                 'isActive': 1
             },
-            relations: ['user'],
+            relations: ['user', 'tag'],
             orderBy: { 'version': 'DESC' },
         });
         if (!article) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
@@ -54,14 +57,14 @@ export class ArticlesService {
     }
 
     public async getArticleByUrl(permission: number, url: string): Promise<Article> {
-        const article = await this.repository.findOne({
+        const article = await this.articleRepository.findOne({
             select: selectedColumns,
             where: {
                 'url': url,
                 'permission': MoreThanOrEqual(permission),
                 'isActive': 1
             },
-            relations: ['user'],
+            relations: ['user', 'tag'],
             orderBy: { 'version': 'DESC' },
         });
         if (!article) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
@@ -70,16 +73,26 @@ export class ArticlesService {
     }
 
     public async createArticle(data: CreateArticleDto, user: TokenDto): Promise<Article> {
-        // Relate article to user.
         data.user = user.id;
+        const newArticle = this.articleRepository.create(data);
 
-        const newArticle = this.repository.create(data);
-        await this.repository.save(newArticle);
+        // Resolve user one-to-many relationship.
+        newArticle.user = user.id;
+
+        // Resolve tag many-to-many relationship.
+        if (data.tags?.length > 0) {
+            newArticle.tags = await this.tagRepository.find({
+                select: [ 'id', 'name', 'url' ],
+                where: { id: In(data.tags) }
+            });
+        }
+
+        await this.articleRepository.save(newArticle);
         return newArticle;
     }
 
     public async updateArticle(articleId: string, data: CreateArticleDto, user: TokenDto): Promise<Article> {
-        const oldArticle = await this.repository.findOne({
+        const oldArticle = await this.articleRepository.findOne({
             select: ['uuid', 'version'],
             where: {
                 id: articleId,
@@ -89,15 +102,22 @@ export class ArticlesService {
         });
         if (!oldArticle) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
 
-        // Modify attributes 
+        const newArticle = this.articleRepository.create(data);
+        // Modify attributes
         data.id = articleId;
         data.user = user.id;
         data.version = oldArticle.version += 1;
+
+        if (data.tags?.length > 0) {
+            newArticle.tags = await this.tagRepository.find({
+                select: [ 'id', 'name', 'url' ],
+                where: { id: In(data.tags) }
+            });
+        }
+
         oldArticle.isActive = false;
 
-        const newArticle = this.repository.create(data);
-
-        await this.repository.manager.transaction("REPEATABLE READ", async transactionalEntityManager => {
+        await this.articleRepository.manager.transaction("REPEATABLE READ", async transactionalEntityManager => {
             await transactionalEntityManager.save(newArticle);
             await transactionalEntityManager.save(oldArticle);
         });
@@ -106,12 +126,12 @@ export class ArticlesService {
     }
 
     public async deleteArticle(articleId: string, user: TokenDto): Promise<ArticleDeleteConfirmationDto> {
-        const articles = await this.repository.find({
+        const articles = await this.articleRepository.find({
             where: { id: articleId, permission: MoreThanOrEqual(user.permission) }
         });
         if (!articles || !articles.length) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
 
-        await this.repository.softRemove(articles);
+        await this.articleRepository.softRemove(articles);
         return {
             id: articleId,
             count: articles.length
@@ -119,7 +139,7 @@ export class ArticlesService {
     }
 
     public async recoverArticle(articleId: string, user: TokenDto): Promise<ArticleDeleteConfirmationDto> {
-        const dbResponse = await this.repository.createQueryBuilder("articles")
+        const dbResponse = await this.articleRepository.createQueryBuilder("articles")
             .where("id = :id", { id: articleId })
             .andWhere("permission >= :permission", { permission: user.permission })
             .restore()

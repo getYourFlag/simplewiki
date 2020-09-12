@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Connection, getRepository } from "typeorm";
 import { TagsDto } from "./tags.dto";
 import { Tag } from "./tags.entity";
@@ -13,16 +13,16 @@ export class TagsService {
 
     public async getTagList(): Promise<Tag[]> {
         return await this.repository.find({
-            select: ['name', 'url']
+            select: ['id', 'name', 'url']
         });
     }
 
     public async getTagById(uuid: string): Promise<Tag> {
-        return await this.repository.findOne(uuid);
+        return await this.repository.findOneOrFail(uuid);
     }
 
     public async getTagByUrl(url: string): Promise<Tag> {
-        return await this.repository.findOne({ url });
+        return await this.repository.findOneOrFail({ url });
     }
 
     public async createTag(data: TagsDto): Promise<Tag> {
@@ -32,7 +32,10 @@ export class TagsService {
     }
 
     public async updateTag(uuid: string, data: TagsDto): Promise<Tag> {
-        await this.repository.save(uuid, data);
+        const oldTag = await this.getTagById(uuid);
+        if (!oldTag) throw new HttpException('Tag not found', HttpStatus.NOT_FOUND);
+
+        await this.repository.update(uuid, data);
         return await this.getTagById(uuid);
     }
 
@@ -40,4 +43,5 @@ export class TagsService {
         await this.repository.softDelete(uuid);
         return true;
     }
+
 }

@@ -1,4 +1,4 @@
-import { IsOptional, IsEmpty, IsInt, Min, Max, IsString, MaxLength, IsUUID } from 'class-validator';
+import { IsOptional, IsEmpty, IsInt, Min, Max, IsString, MaxLength, IsUUID, ArrayUnique, IsArray } from 'class-validator';
 
 export class CreateArticleDto {
     @MaxLength(255)
@@ -27,6 +27,8 @@ export class CreateArticleDto {
     isPinned: boolean;
 
     @IsOptional()
+    @IsArray()
+    @ArrayUnique()
     @IsUUID(4, {each: true})
     tags: Array<string>;
 
