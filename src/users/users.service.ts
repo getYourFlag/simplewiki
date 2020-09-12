@@ -1,8 +1,9 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { User } from './users.entity';
-import { getRepository, Connection } from 'typeorm';
+import { getRepository, Connection, MoreThanOrEqual } from 'typeorm';
 import { RegisterUserDto, UpdateUserDto, CreateUserDto } from './users.dto';
 import * as bcrypt from 'bcrypt';
+import { PermissionLevel } from 'src/auth/auth.enum';
 
 @Injectable()
 export class UsersService {
@@ -79,11 +80,29 @@ export class UsersService {
         return true;
     }
 
-    async getUsersCount(): Promise<Number> {
-        return await this.userRepository.find({
-            where: {
-                permission: 127
-            }
-        }).getCount();
+    async getUsersCount(minimumPermissionLevel = null): Promise<Number> {
+        const findOptions = minimumPermissionLevel ? {
+            permission: MoreThanOrEqual(minimumPermissionLevel)
+        } : Object.create(null);
+
+        return await this.userRepository.count(findOptions);
+    }
+
+    async createDefaultUsers(): Promise<void> {
+        const adminCount = await this.getUsersCount(PermissionLevel.ADMIN);
+        if (adminCount > 0) {
+            return;
+        };
+
+        console.log('No admin accounts were discovered within application, creating a default user for you.');
+        console.log('The account\'s username and password is DEFAULT.');
+        console.log('Please change the password of the account immediately after logging in the system.');
+
+        await this.createUser({
+            username: 'DEFAULT',
+            password: 'DEFAULT',
+            nick: 'DEFAULT ADMIN',
+            permission: 127
+        });
     }
 }

@@ -1,4 +1,4 @@
-import { IsOptional, IsEmpty, IsInt, Min, Max, Length, IsString, MaxLength, IsUUID } from 'class-validator';
+import { IsOptional, IsEmpty, IsInt, Min, Max, IsString, MaxLength, IsUUID } from 'class-validator';
 
 export class CreateArticleDto {
     @MaxLength(255)

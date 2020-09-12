@@ -39,6 +39,9 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto {
+    @IsOptional()
+    @Length(3, 50)
+    username: string;
 
     @IsOptional()
     @Length(3, 50)
@@ -61,4 +64,10 @@ export class LoginDto {
     @IsNotEmpty()
     password: string;
     
+}
+
+export class TokenDto {
+    id: number;
+    username: string;
+    permission: number;
 }

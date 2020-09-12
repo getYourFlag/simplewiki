@@ -3,6 +3,7 @@ import { Connection, MoreThanOrEqual, Raw } from 'typeorm';
 import { Article } from './articles.entity';
 import { ConfigService } from '@nestjs/config';
 import { ArticleDeleteConfirmationDto, CreateArticleDto } from './articles.dto';
+import { TokenDto } from 'src/users/users.dto';
 
 const selectedColumns = ['id', 'uuid', 'title', 'url', 'content', 'created_at', 'updated_at'];
 
@@ -68,20 +69,21 @@ export class ArticlesService {
         return article;
     }
 
-    public async createArticle(data: CreateArticleDto, userId: number): Promise<Article> {
-        // Set attributes of article.
-        data.user = userId;
+    public async createArticle(data: CreateArticleDto, user: TokenDto): Promise<Article> {
+        // Relate article to user.
+        data.user = user.id;
 
         const newArticle = this.repository.create(data);
         await this.repository.save(newArticle);
         return newArticle;
     }
 
-    public async updateArticle(articleId: string, data: CreateArticleDto, userId: number): Promise<Article> {
+    public async updateArticle(articleId: string, data: CreateArticleDto, user: TokenDto): Promise<Article> {
         const oldArticle = await this.repository.findOne({
             select: ['uuid', 'version'],
             where: {
                 id: articleId,
+                permission: MoreThanOrEqual(user.permission),
                 isActive: true
             }
         });
@@ -89,7 +91,7 @@ export class ArticlesService {
 
         // Modify attributes 
         data.id = articleId;
-        data.user = userId;
+        data.user = user.id;
         data.version = oldArticle.version += 1;
         oldArticle.isActive = false;
 
@@ -103,9 +105,9 @@ export class ArticlesService {
         return newArticle;
     }
 
-    public async deleteArticle(articleId: string): Promise<ArticleDeleteConfirmationDto> {
+    public async deleteArticle(articleId: string, user: TokenDto): Promise<ArticleDeleteConfirmationDto> {
         const articles = await this.repository.find({
-            where: { id: articleId }
+            where: { id: articleId, permission: MoreThanOrEqual(user.permission) }
         });
         if (!articles || !articles.length) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
 
@@ -116,9 +118,10 @@ export class ArticlesService {
         }
     }
 
-    public async recoverArticle(articleId: string): Promise<ArticleDeleteConfirmationDto> {
+    public async recoverArticle(articleId: string, user: TokenDto): Promise<ArticleDeleteConfirmationDto> {
         const dbResponse = await this.repository.createQueryBuilder("articles")
-            .where("id = :id", {id: articleId})
+            .where("id = :id", { id: articleId })
+            .andWhere("permission >= :permission", { permission: user.permission })
             .restore()
             .execute();
 

@@ -19,7 +19,7 @@ export class User {
     @Column("tinyint", { default: 1 })
     permission: number;
 
-    @OneToMany(type => Article, article => article.user)
+    @OneToMany(type => Article, article => article.user, { onDelete: 'SET NULL' })
     articles: Article[];
 
     @Column({ default: null, select: false })

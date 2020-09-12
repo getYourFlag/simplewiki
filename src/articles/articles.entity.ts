@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToOne, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, BeforeInsert, PrimaryGeneratedColumn } from "typeorm";
-import { Tag } from '../entities/tag.entity';
+import { Tag } from '../tags/tags.entity';
 import { User } from "../users/users.entity";
 import { PermissionLevel } from 'src/auth/auth.enum';
 import { randomBytes } from 'crypto';
