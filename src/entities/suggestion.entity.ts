@@ -1,5 +1,4 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
-import { ModifyTime } from '../common/entities/modifyTime.entity';
 
 @Entity()
 export class Suggestion {
@@ -17,7 +16,4 @@ export class Suggestion {
 
     @Column("boolean")
     visible: boolean;
-
-    @Column(type => ModifyTime)
-    time: ModifyTime
 }

@@ -1,7 +1,6 @@
-import { IsOptional, IsNotEmpty, IsInt, Min, Max, Length, IsString, MaxLength, IsUUID } from 'class-validator';
+import { IsOptional, IsEmpty, IsInt, Min, Max, Length, IsString, MaxLength, IsUUID } from 'class-validator';
 
 export class CreateArticleDto {
-
     @MaxLength(255)
     title: string;
 
@@ -31,6 +30,19 @@ export class CreateArticleDto {
     @IsUUID(4, {each: true})
     tags: Array<string>;
 
+    @IsOptional()
     @IsInt()
     user: number;
+
+    // These attributes are reserved for service internal use, not expected for appearing at API endpoint.
+    @IsEmpty()
+    id: string;
+
+    @IsEmpty()
+    version: number;
+}
+
+export class ArticleDeleteConfirmationDto {
+    id: string;
+    count: number;
 }

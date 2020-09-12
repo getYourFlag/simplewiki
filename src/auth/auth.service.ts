@@ -16,21 +16,23 @@ export class AuthService {
     }
 
     async authenticate(username: string, password: string): Promise<any> {
-        const user = await this.userRepository
-            .createQueryBuilder("user")
-            .addSelect("user.password")
-            .where("user.username = :username", { username })
-            .getOne();
+        const user = await this.userRepository.findOne({
+            select: ['id', 'username', 'password', 'permission'],
+            where: { username }
+        });
         if (!user) return null;
 
         const isAuthenticated = await bcrypt.compare(password, user.password);
         if (!isAuthenticated) return null;
+
+        await this.userRepository.update(user.id, { last_login: new Date().toString()})
 
         return user;
     }
 
     public generateToken = async (user: User) => ({ 
         access_token: this.jwtService.sign({
+            id: user.id,
             username: user.username,
             permission: user.permission
         })

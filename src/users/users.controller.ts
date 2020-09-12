@@ -38,12 +38,12 @@ export class UserController {
 }
 
 @Controller('admin/users')
-@MinimumPermissionLevel(PermissionLevel.ADMIN)
-@UseGuards(JwtAuthGuard, PermissionGuard)
+//@MinimumPermissionLevel(PermissionLevel.ADMIN)
+//@UseGuards(JwtAuthGuard, PermissionGuard)
 export class UserManagementController {
     constructor(private usersService: UsersService) {};
 
-    @Post('create')
+    @Post()
     async createUser(@Body() user: CreateUserDto): Promise<User> {
         return this.usersService.createUser(user);
     }

@@ -13,17 +13,18 @@ export class UsersService {
     }
 
     private async findUserById(id): Promise<User> {
-        const user = await this.userRepository.findOne(id);
+        const user = await this.userRepository.findOne(id, {
+            select: ['username', 'nick', 'permission', 'last_login', 'created_at', 'updated_at']
+        });
         if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
         return user;
     }
 
     private async findUserByIdAndAuthorize(id: number, password: string): Promise<User> {
         const user = await this.userRepository
-            .createQueryBuilder("user")
-            .addSelect("user.password")
-            .where("user.id = :id", { id })
-            .getOne();
+            .findOne(id, {
+                select: ['username', 'password', 'nick', 'permission', 'last_login', 'created_at', 'updated_at']
+            })
         if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
 
         if (!password) throw new HttpException('Password not embedded in request', HttpStatus.BAD_REQUEST);
@@ -49,7 +50,7 @@ export class UsersService {
         newUser.permission = 1;
         
         await this.userRepository.save(newUser);
-        return newUser;
+        return newUser.generatedMaps[0];
     }
 
     async createUser(user: CreateUserDto): Promise<User> {
