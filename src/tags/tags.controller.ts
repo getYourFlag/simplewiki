@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { MinimumPermissionLevel } from 'src/auth/auth.decorator';
 import { PermissionLevel } from 'src/auth/auth.enum';
 import { JwtAuthGuard, PermissionGuard } from 'src/auth/auth.guard';
 import { TagsService } from './tags.service';
 import { Tag } from './tags.entity';
-import { TagsDto } from './tags.dto';
+import { TagDeleteConfirmationDto, TagsDto } from './tags.dto';
 
 @Controller('tags')
 export class TagsController {
@@ -43,5 +43,10 @@ export class TagsAdminController {
     @Put(':id')
     async updateTag(@Param('id') uuid: string, @Body() data: TagsDto): Promise<Tag> {
         return await this.service.updateTag(uuid, data);
+    }
+
+    @Delete(':id')
+    async deleteTag(@Param('id') uuid: string): Promise<TagDeleteConfirmationDto> {
+        return await this.service.deleteTag(uuid);
     }
 }

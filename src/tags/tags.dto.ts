@@ -16,3 +16,7 @@ export class TagsDto {
     @ArrayUnique()
     articles: Array<string>;
 }
+
+export class TagDeleteConfirmationDto {
+    id: string;
+}

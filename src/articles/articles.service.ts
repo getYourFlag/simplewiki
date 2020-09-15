@@ -117,7 +117,7 @@ export class ArticlesService {
 
         oldArticle.isActive = false;
 
-        await this.articleRepository.manager.transaction("REPEATABLE READ", async transactionalEntityManager => {
+        await this.articleRepository.manager.transaction(async transactionalEntityManager => {
             await transactionalEntityManager.save(newArticle);
             await transactionalEntityManager.save(oldArticle);
         });
