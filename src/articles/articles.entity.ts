@@ -1,8 +1,10 @@
-import { Entity, Column, ManyToOne, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, BeforeInsert, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn, 
+    DeleteDateColumn, BeforeInsert, PrimaryGeneratedColumn } from "typeorm";
 import { Tag } from '../tags/tags.entity';
 import { User } from "../users/users.entity";
 import { PermissionLevel } from 'src/auth/auth.enum';
 import { randomBytes } from 'crypto';
+import { Suggestion } from "src/entities/suggestion.entity";
 
 @Entity()
 export class Article {
@@ -46,6 +48,9 @@ export class Article {
     @ManyToMany(type => Tag, tag => tag.articles, { eager: true, onDelete: "CASCADE" })
     @JoinTable()
     tags: Tag[];
+
+    @OneToMany(type => Suggestion, suggestion => suggestion.article, { onDelete: 'NO ACTION' })
+    suggestions: Suggestion[];
 
     @ManyToOne(type => User, user => user.articles)
     user: User;

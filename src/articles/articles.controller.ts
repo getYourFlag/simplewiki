@@ -8,7 +8,6 @@ import { User } from 'src/users/users.decorator';
 import { ArticlesService } from './articles.service';
 import { Article } from './articles.entity';
 import { ArticleDeleteConfirmationDto, CreateArticleDto } from './articles.dto';
-import { userInfo } from 'os';
 
 @Controller('articles')
 export class ArticlesViewController {
