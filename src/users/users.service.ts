@@ -3,7 +3,7 @@ import { User } from './users.entity';
 import { getRepository, Connection, MoreThanOrEqual } from 'typeorm';
 import { RegisterUserDto, UpdateUserDto, CreateUserDto } from './users.dto';
 import * as bcrypt from 'bcrypt';
-import { PermissionLevel } from 'src/auth/auth.enum';
+import { PermissionLevel } from '../auth/auth.enum';
 
 @Injectable()
 export class UsersService {

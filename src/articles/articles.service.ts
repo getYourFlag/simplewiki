@@ -3,8 +3,8 @@ import { Connection, In, MoreThanOrEqual } from 'typeorm';
 import { Article } from './articles.entity';
 import { ConfigService } from '@nestjs/config';
 import { ArticleDeleteConfirmationDto, CreateArticleDto } from './articles.dto';
-import { TokenDto } from 'src/users/users.dto';
-import { Tag } from 'src/tags/tags.entity';
+import { TokenDto } from '../users/users.dto';
+import { Tag } from '../tags/tags.entity';
 
 const selectedColumns = ['id', 'uuid', 'title', 'url', 'content', 'created_at', 'updated_at'];
 

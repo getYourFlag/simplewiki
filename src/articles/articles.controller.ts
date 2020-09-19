@@ -1,9 +1,9 @@
 import { Controller, Post, Get, Param, HttpException, HttpStatus, Query, UseGuards, Body, Put, Delete } from '@nestjs/common';
 
-import { PermissionLevel } from 'src/auth/auth.enum';
-import { MinimumPermissionLevel } from 'src/auth/auth.decorator';
-import { JwtAuthGuard, PermissionGuard } from 'src/auth/auth.guard';
-import { User } from 'src/users/users.decorator';
+import { PermissionLevel } from '../auth/auth.enum';
+import { MinimumPermissionLevel } from '../auth/auth.decorator';
+import { JwtAuthGuard, PermissionGuard } from '../auth/auth.guard';
+import { User } from '../users/users.decorator';
 
 import { ArticlesService } from './articles.service';
 import { Article } from './articles.entity';

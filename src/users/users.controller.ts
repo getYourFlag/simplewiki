@@ -2,9 +2,9 @@ import { Controller, Get, Body, Param, Post, Put, Delete, UseGuards, Request, Ht
 import { RegisterUserDto, UpdateUserDto, CreateUserDto } from './users.dto';
 import { UsersService } from './users.service';
 import { User } from './users.entity';
-import { MinimumPermissionLevel } from 'src/auth/auth.decorator';
-import { JwtAuthGuard, PermissionGuard } from 'src/auth/auth.guard';
-import { PermissionLevel } from 'src/auth/auth.enum';
+import { MinimumPermissionLevel } from '../auth/auth.decorator';
+import { JwtAuthGuard, PermissionGuard } from '../auth/auth.guard';
+import { PermissionLevel } from '../auth/auth.enum';
 
 @Controller('users')
 export class UserController {

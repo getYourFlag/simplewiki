@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { Article } from "src/articles/articles.entity";
+import { Article } from "../articles/articles.entity";
 import { Connection, getRepository, In } from "typeorm";
 import { TagDeleteConfirmationDto, TagsDto } from "./tags.dto";
 import { Tag } from "./tags.entity";

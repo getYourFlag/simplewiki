@@ -2,9 +2,9 @@ import { Entity, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, CreateDate
     DeleteDateColumn, BeforeInsert, PrimaryGeneratedColumn } from "typeorm";
 import { Tag } from '../tags/tags.entity';
 import { User } from "../users/users.entity";
-import { PermissionLevel } from 'src/auth/auth.enum';
+import { PermissionLevel } from '../auth/auth.enum';
 import { randomBytes } from 'crypto';
-import { Suggestion } from "src/entities/suggestion.entity";
+import { Suggestion } from "../suggestions/suggestions.entity";
 
 @Entity()
 export class Article {

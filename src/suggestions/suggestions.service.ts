@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { Article } from "src/articles/articles.entity";
-import { Suggestion } from "src/entities/suggestion.entity";
+import { Article } from "../articles/articles.entity";
+import { Suggestion } from "../entities/suggestion.entity";
 import { Connection, getRepository, In } from "typeorm";
 import { SuggestionDeleteConfirmationDto, SuggestionsDto } from "./suggestions.dto";
 

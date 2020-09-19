@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from "@nestjs/common";
-import { MinimumPermissionLevel } from "src/auth/auth.decorator";
-import { PermissionLevel } from "src/auth/auth.enum";
-import { JwtAuthGuard, PermissionGuard } from "src/auth/auth.guard";
-import { Suggestion } from "src/entities/suggestion.entity";
+import { MinimumPermissionLevel } from "../auth/auth.decorator";
+import { PermissionLevel } from "../auth/auth.enum";
+import { JwtAuthGuard, PermissionGuard } from "../auth/auth.guard";
+import { Suggestion } from "../entities/suggestion.entity";
 import { SuggestionDeleteConfirmationDto, SuggestionsDto } from "./suggestions.dto";
 import { SuggestionsService } from "./suggestions.service";
 

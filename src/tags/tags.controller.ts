@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
-import { MinimumPermissionLevel } from 'src/auth/auth.decorator';
-import { PermissionLevel } from 'src/auth/auth.enum';
-import { JwtAuthGuard, PermissionGuard } from 'src/auth/auth.guard';
+import { MinimumPermissionLevel } from '../auth/auth.decorator';
+import { PermissionLevel } from '../auth/auth.enum';
+import { JwtAuthGuard, PermissionGuard } from '../auth/auth.guard';
 import { TagsService } from './tags.service';
 import { Tag } from './tags.entity';
 import { TagDeleteConfirmationDto, TagsDto } from './tags.dto';
