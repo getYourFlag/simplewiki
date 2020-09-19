@@ -1,5 +1,4 @@
-import { applyDecorators, createParamDecorator, ExecutionContext, UseGuards, SetMetadata } from '@nestjs/common';
-import { JwtAuthGuard, PermissionGuard } from 'src/auth/auth.guard';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 export const User = createParamDecorator(
   (data: string, ctx: ExecutionContext) => {

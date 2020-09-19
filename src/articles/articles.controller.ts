@@ -15,7 +15,7 @@ export class ArticlesViewController {
     constructor(private service: ArticlesService) {}
     
     @Get()
-    async getArticleList(@User('permission') permission: number = PermissionLevel.PUBLIC, @Query('page') page: number = 1) {
+    async getArticleList(@User('permission') permission: number = PermissionLevel.PUBLIC, @Query('page') page = 1) {
         if (!Number.isInteger(page) || page < 1) throw new HttpException('Invalid page number', HttpStatus.BAD_REQUEST);
 
         return this.service.getArticlesList(permission, page);

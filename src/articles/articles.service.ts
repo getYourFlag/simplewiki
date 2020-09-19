@@ -1,5 +1,5 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { Connection, In, MoreThanOrEqual, Raw } from 'typeorm';
+import { Connection, In, MoreThanOrEqual } from 'typeorm';
 import { Article } from './articles.entity';
 import { ConfigService } from '@nestjs/config';
 import { ArticleDeleteConfirmationDto, CreateArticleDto } from './articles.dto';
@@ -20,10 +20,10 @@ export class ArticlesService {
     ) {
         this.articleRepository = connection.getRepository(Article);
         this.tagRepository = connection.getRepository(Tag);
-        this.articlesPerPage = configService.get<Number>('RECORDS_PER_PAGE');
+        this.articlesPerPage = configService.get<number>('RECORDS_PER_PAGE');
     }
 
-    public async getArticlesList(permission: number, page: number = 1): Promise<Article[]> {
+    public async getArticlesList(permission: number, page = 1): Promise<Article[]> {
         return await this.articleRepository.find({
             select: selectedColumns,
             where: {

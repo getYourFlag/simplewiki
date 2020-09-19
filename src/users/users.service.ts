@@ -80,7 +80,7 @@ export class UsersService {
         return true;
     }
 
-    async getUsersCount(minimumPermissionLevel = null): Promise<Number> {
+    async getUsersCount(minimumPermissionLevel = null): Promise<number> {
         const findOptions = minimumPermissionLevel ? {
             permission: MoreThanOrEqual(minimumPermissionLevel)
         } : Object.create(null);

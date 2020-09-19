@@ -1,5 +1,4 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from "@nestjs/common";
-import { Min } from "class-validator";
 import { MinimumPermissionLevel } from "src/auth/auth.decorator";
 import { PermissionLevel } from "src/auth/auth.enum";
 import { JwtAuthGuard, PermissionGuard } from "src/auth/auth.guard";
@@ -27,12 +26,12 @@ export class SuggestionsController {
     constructor(private service: SuggestionsService) {}
 
     @Get()
-    public async getSuggestionList(@Query('page') page: number = 1): Promise<Suggestion[]> {
+    public async getSuggestionList(@Query('page') page = 1): Promise<Suggestion[]> {
         return await this.service.getAllSuggestions(page);
     }
 
     @Get('article/:id')
-    public async getSuggestions(@Param('id') id: string, @Query('page') page: number = 1): Promise<Suggestion[]> {
+    public async getSuggestions(@Param('id') id: string, @Query('page') page = 1): Promise<Suggestion[]> {
         return await this.service.getArticleSuggestion(id, page);
     }
 
@@ -45,5 +44,5 @@ export class SuggestionsController {
     public async deleteSuggestion(@Param('id') uuid: string): Promise<SuggestionDeleteConfirmationDto> {
         return await this.service.deleteSuggestion(uuid);
     }
-    
+
 }

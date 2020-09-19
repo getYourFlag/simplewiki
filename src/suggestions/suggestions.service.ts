@@ -14,14 +14,14 @@ export class SuggestionsService {
         this.articleRepository = getRepository(Article);
     }
 
-    public async getAllSuggestions(page: number = 1): Promise<Suggestion[]> {
+    public async getAllSuggestions(page = 1): Promise<Suggestion[]> {
         return await this.suggestionRepository.find({
             skip: (page - 1) * 20,
             take: 20
         });
     }
 
-    public async getArticleSuggestion(articleId: string, page: number = 1): Promise<Suggestion[]> {
+    public async getArticleSuggestion(articleId: string, page = 1): Promise<Suggestion[]> {
         return await this.suggestionRepository.find({
             where: { articleId },
             skip: (page - 1) * 20,
