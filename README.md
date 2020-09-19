@@ -24,6 +24,8 @@ This application uses TypeORM for database access using SQL-based syntax. Theore
 
 1. Creating a frontend for API consumption.
 2. Search articles by tag, title or content.
+3. Custom recording of database updates.
+4. Logging system for errors.
 
 ## License
 

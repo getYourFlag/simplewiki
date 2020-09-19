@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { Min } from "class-validator";
 import { MinimumPermissionLevel } from "src/auth/auth.decorator";
 import { PermissionLevel } from "src/auth/auth.enum";
 import { JwtAuthGuard, PermissionGuard } from "src/auth/auth.guard";
 import { Suggestion } from "src/entities/suggestion.entity";
-import { SuggestionsDto } from "./suggestions.dto";
+import { SuggestionDeleteConfirmationDto, SuggestionsDto } from "./suggestions.dto";
 import { SuggestionsService } from "./suggestions.service";
 
 @Controller('suggestions')
@@ -35,4 +35,15 @@ export class SuggestionsController {
     public async getSuggestions(@Param('id') id: string, @Query('page') page: number = 1): Promise<Suggestion[]> {
         return await this.service.getArticleSuggestion(id, page);
     }
+
+    @Get('id/:id')
+    public async getSuggestion(@Param('id') uuid: string): Promise<Suggestion> {
+        return await this.service.getSuggestion(uuid);
+    }
+
+    @Delete(':id')
+    public async deleteSuggestion(@Param('id') uuid: string): Promise<SuggestionDeleteConfirmationDto> {
+        return await this.service.deleteSuggestion(uuid);
+    }
+    
 }
