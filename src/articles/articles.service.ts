@@ -1,10 +1,11 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { Connection, In, MoreThanOrEqual } from 'typeorm';
+import { Connection, getRepository, In, MoreThanOrEqual, Repository } from 'typeorm';
 import { Article } from './articles.entity';
 import { ConfigService } from '@nestjs/config';
 import { ArticleDeleteConfirmationDto, CreateArticleDto } from './articles.dto';
 import { TokenDto } from '../users/users.dto';
 import { Tag } from '../tags/tags.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 const selectedColumns = ['id', 'uuid', 'title', 'url', 'content', 'created_at', 'updated_at'];
 
@@ -16,10 +17,10 @@ export class ArticlesService {
 
     constructor(
         connection: Connection,
-        configService: ConfigService
+        configService: ConfigService,
     ) {
-        this.articleRepository = connection.getRepository(Article);
-        this.tagRepository = connection.getRepository(Tag);
+        this.articleRepository = getRepository(Article);
+        this.tagRepository = getRepository(Tag);
         this.articlesPerPage = configService.get<number>('RECORDS_PER_PAGE');
     }
 

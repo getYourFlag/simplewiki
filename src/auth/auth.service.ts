@@ -15,7 +15,7 @@ export class AuthService {
         this.userRepository = getRepository(User);
     }
 
-    async authenticate(username: string, password: string): Promise<any> {
+    async authenticate(username: string, password: string): Promise<User | null> {
         const user = await this.userRepository.findOne({
             select: ['id', 'username', 'password', 'permission'],
             where: { username }

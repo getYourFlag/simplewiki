@@ -1,4 +1,6 @@
 import { Length, IsString } from 'class-validator';
+import { Article } from 'src/articles/articles.entity';
+import { DeepPartial } from 'typeorm';
 
 export class SuggestionsDto {
     @Length(1, 50)

@@ -1,18 +1,20 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Article } from "../articles/articles.entity";
-import { Suggestion } from "../entities/suggestion.entity";
-import { Connection, getRepository, In } from "typeorm";
+import { Suggestion } from "./suggestions.entity";
+import { Connection, DeepPartial, getRepository, Repository } from "typeorm";
 import { SuggestionDeleteConfirmationDto, SuggestionsDto } from "./suggestions.dto";
+import { InjectRepository } from "@nestjs/typeorm";
+import { CreateArticleDto } from "src/articles/articles.dto";
 
 @Injectable()
 export class SuggestionsService {
-    private suggestionRepository;
-    private articleRepository;
-
-    constructor(private connection: Connection) {
-        this.suggestionRepository = getRepository(Suggestion);
-        this.articleRepository = getRepository(Article);
-    }
+    constructor(
+        private connection: Connection,
+        @InjectRepository(Suggestion)
+        private readonly suggestionRepository: Repository<Suggestion>,
+        @InjectRepository(Article)
+        private readonly articleRepository: Repository<Article>
+    ) {}
 
     public async getAllSuggestions(page = 1): Promise<Suggestion[]> {
         return await this.suggestionRepository.find({
@@ -34,17 +36,17 @@ export class SuggestionsService {
     }
 
     public async submitSuggestion(data: SuggestionsDto): Promise<Suggestion> {
-        const suggestion = this.suggestionRepository.create(data);
-        suggestion.article = this.articleRepository.findOne({
+        const article = await this.articleRepository.findOne({
             where: { id: data.article }
         });
+        if (!article) throw new HttpException('Binded article was not found', HttpStatus.NOT_FOUND);
 
-        await this.suggestionRepository.save(suggestion);
+        const suggestion = await this.suggestionRepository.preload({...data, article });
         return suggestion;
     }
 
     public async deleteSuggestion(uuid: string): Promise<SuggestionDeleteConfirmationDto> {
-        const suggestion = this.suggestionRepository.findOne(uuid);
+        const suggestion = await this.suggestionRepository.findOne(uuid);
         if (!suggestion) throw new HttpException('Suggestion not found', HttpStatus.NOT_FOUND);
 
         await this.suggestionRepository.softRemove(suggestion);

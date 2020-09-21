@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } fro
 import { MinimumPermissionLevel } from "../auth/auth.decorator";
 import { PermissionLevel } from "../auth/auth.enum";
 import { JwtAuthGuard, PermissionGuard } from "../auth/auth.guard";
-import { Suggestion } from "../entities/suggestion.entity";
+import { Suggestion } from "./suggestions.entity";
 import { SuggestionDeleteConfirmationDto, SuggestionsDto } from "./suggestions.dto";
 import { SuggestionsService } from "./suggestions.service";
 
