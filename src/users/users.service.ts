@@ -1,17 +1,15 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { User } from './users.entity';
-import { getRepository, Connection, MoreThanOrEqual } from 'typeorm';
+import { getRepository, Connection, MoreThanOrEqual, Repository } from 'typeorm';
 import { RegisterUserDto, UpdateUserDto, CreateUserDto } from './users.dto';
 import * as bcrypt from 'bcrypt';
 import { PermissionLevel } from '../auth/auth.enum';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class UsersService {
-    private userRepository;
 
-    constructor(private connection: Connection) {
-        this.userRepository = getRepository(User);
-    }
+    constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) {}
 
     private async findUserById(id): Promise<User> {
         const user = await this.userRepository.findOne(id, {
@@ -50,12 +48,15 @@ export class UsersService {
         newUser.permission = 1;
         
         await this.userRepository.save(newUser);
-        return newUser.generatedMaps[0];
+        return newUser;
     }
 
-    async createUser(user: CreateUserDto): Promise<User> {
-        user.password = await bcrypt.hash(user.password, 10);
-        return await this.userRepository.insert(user);
+    async createUser(userData: CreateUserDto): Promise<User> {
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+        const user = this.userRepository.create({ ...userData, password: hashedPassword });
+        await this.userRepository.save(user);
+
+        return user;
     }
 
     async updateUser(id: number, updates: UpdateUserDto): Promise<User> {

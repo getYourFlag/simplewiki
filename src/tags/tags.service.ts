@@ -1,17 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Article } from "../articles/articles.entity";
-import { Connection, getRepository, In } from "typeorm";
+import { In, Repository } from "typeorm";
 import { TagDeleteConfirmationDto, TagsDto } from "./tags.dto";
 import { Tag } from "./tags.entity";
+import { InjectRepository } from "@nestjs/typeorm";
 
 @Injectable()
 export class TagsService {
-    private tagRepository;
-    private articleRepository;
 
-    constructor(private connection: Connection) {
-        this.tagRepository = getRepository(Tag);
-        this.articleRepository = getRepository(Article);
+    constructor(
+        @InjectRepository(Tag)
+        private readonly tagRepository: Repository<Tag>,
+        @InjectRepository(Article)
+        private readonly articleRepository: Repository<Article>
+    ) {
     }
 
     public async getTagList(): Promise<Tag[]> {
@@ -21,46 +23,50 @@ export class TagsService {
     }
 
     public async getTagById(uuid: string): Promise<Tag> {
-        return await this.tagRepository.findOneOrFail(uuid);
+        const tag = await this.tagRepository.findOne(uuid, {
+            relations: ['articles']
+        });
+        if (!tag) throw new HttpException('Tag not found', HttpStatus.NOT_FOUND);
+        return tag;
     }
 
     public async getTagByUrl(url: string): Promise<Tag> {
-        return await this.tagRepository.findOneOrFail({ url });
+        const tag = await this.tagRepository.findOne({
+            where: { url },
+            relations: ['articles']
+        });
+        if (!tag) throw new HttpException('Tag not found', HttpStatus.NOT_FOUND);
+        return tag;
     }
 
     public async createTag(data: TagsDto): Promise<Tag> {
-        const newTag = this.tagRepository.create(data);
-
-        if (data.articles?.length > 0) {
-            newTag.articles = await this.articleRepository.find({
+        const articles = data.articles?.length > 0 ? 
+            await this.articleRepository.find({
                 select: ['id', 'title', 'url'],
                 where: { id: In(data.articles) }
-            });
-        }
+            }) 
+            : null;
+
+        const newTag = this.tagRepository.create({ ...data, articles });
 
         await this.tagRepository.save(newTag);
         return newTag;
     }
 
     public async updateTag(uuid: string, data: TagsDto): Promise<Tag> {
-        const oldTag = await this.getTagById(uuid);
-        if (!oldTag) throw new HttpException('Tag not found', HttpStatus.NOT_FOUND);
+        const tag = await this.getTagById(uuid);
+        if (!tag) throw new HttpException('Tag not found', HttpStatus.NOT_FOUND);
 
-        await this.tagRepository.update(uuid, data);
-
+        const { articles, ...updateData } = data;
         // Update many-to-many relations to articles.
-        if (data.articles?.length > 0) {
-            const articles = await this.articleRepository.find({
-                where:{
-                    id: In(data.articles),
-                    isActive: 1
-                }
-            });
-            await this.tagRepository.createQueryBuilder()
-                .relation(Tag, 'articles')
-                .of(oldTag)
-                .addAndRemove(oldTag.articles, articles);
-        }
+        const newArticles = articles?.length > 0 ? await this.articleRepository.find({
+            where: {
+                id: In(data.articles),
+                isActive: 1
+            }
+        }) : [];
+
+        await this.tagRepository.update(uuid, { ...updateData, articles: newArticles });
 
         return await this.getTagById(uuid);
     }

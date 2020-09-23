@@ -15,7 +15,7 @@ export class Tag {
     @Column("text", { default: null })
     description: string;
 
-    @ManyToMany(type => Article, article => article.tags, { onDelete: "CASCADE" })
+    @ManyToMany(type => Article, article => article.tags, { cascade: true })
     articles: Article[];
 
     @CreateDateColumn({ select: false })

@@ -1,38 +1,38 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { Connection, getRepository, In, MoreThanOrEqual, Repository } from 'typeorm';
+import { In, MoreThanOrEqual, LessThanOrEqual, Repository } from 'typeorm';
 import { Article } from './articles.entity';
 import { ConfigService } from '@nestjs/config';
 import { ArticleDeleteConfirmationDto, CreateArticleDto } from './articles.dto';
 import { TokenDto } from '../users/users.dto';
 import { Tag } from '../tags/tags.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-
-const selectedColumns = ['id', 'uuid', 'title', 'url', 'content', 'created_at', 'updated_at'];
+import { User } from 'src/users/users.entity';
 
 @Injectable()
 export class ArticlesService {
-    private articleRepository;
-    private tagRepository;
     private articlesPerPage;
 
     constructor(
-        connection: Connection,
         configService: ConfigService,
+        @InjectRepository(Article)
+        private readonly articleRepository: Repository<Article>,
+        @InjectRepository(Tag)
+        private readonly tagRepository: Repository<Tag>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>
     ) {
-        this.articleRepository = getRepository(Article);
-        this.tagRepository = getRepository(Tag);
         this.articlesPerPage = configService.get<number>('RECORDS_PER_PAGE');
     }
 
     public async getArticlesList(permission: number, page = 1): Promise<Article[]> {
         return await this.articleRepository.find({
-            select: selectedColumns,
+            select: ['id', 'uuid', 'title', 'url', 'priority', 'content', 'created_at', 'updated_at'],
             where: {
                 permission: MoreThanOrEqual(permission),
                 isActive: 1
             },
             relations: ['user'],
-            orderBy: {
+            order: {
                 priority: 'DESC',
                 uuid: 'DESC'
             },
@@ -43,14 +43,14 @@ export class ArticlesService {
 
     public async getArticleById(permission: number, id: string): Promise<Article> {
         const article = await this.articleRepository.findOne({
-            select: selectedColumns,
+            select: ['id', 'uuid', 'title', 'url', 'priority', 'content', 'created_at', 'updated_at'],
             where: {
                 'id': id,
                 'permission': MoreThanOrEqual(permission),
                 'isActive': 1
             },
             relations: ['user', 'tag'],
-            orderBy: { 'version': 'DESC' },
+            order: { 'version': 'DESC' },
         });
         if (!article) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
 
@@ -59,65 +59,60 @@ export class ArticlesService {
 
     public async getArticleByUrl(permission: number, url: string): Promise<Article> {
         const article = await this.articleRepository.findOne({
-            select: selectedColumns,
+            select: ['id', 'uuid', 'title', 'url', 'priority', 'content', 'created_at', 'updated_at'],
             where: {
                 'url': url,
                 'permission': MoreThanOrEqual(permission),
                 'isActive': 1
             },
             relations: ['user', 'tag'],
-            orderBy: { 'version': 'DESC' },
+            order: { 'version': 'DESC' },
         });
         if (!article) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
         
         return article;
     }
 
-    public async createArticle(data: CreateArticleDto, user: TokenDto): Promise<Article> {
-        data.user = user.id;
-        const newArticle = this.articleRepository.create(data);
-
-        // Resolve user one-to-many relationship.
-        newArticle.user = user.id;
-
-        // Resolve tag many-to-many relationship.
-        if (data.tags?.length > 0) {
-            newArticle.tags = await this.tagRepository.find({
-                select: [ 'id', 'name', 'url' ],
-                where: { id: In(data.tags) }
-            });
-        }
+    public async createArticle(data: CreateArticleDto, userData: TokenDto): Promise<Article> {
+        const user = await this.userRepository.findOne(userData.id);
+        const tags = data.tags?.length > 0 ? await this.tagRepository.find({
+            select: [ 'id', 'name', 'url' ],
+            where: { id: In(data.tags) }
+        }) : null;
+        const newArticle = this.articleRepository.create({ ...data, user, tags });
 
         await this.articleRepository.save(newArticle);
         return newArticle;
     }
 
-    public async updateArticle(articleId: string, data: CreateArticleDto, user: TokenDto): Promise<Article> {
+    public async updateArticle(articleId: string, data: CreateArticleDto, userData: TokenDto): Promise<Article> {
+        
+        // Retrieve & Modify old article.
         const oldArticle = await this.articleRepository.findOne({
-            select: ['uuid', 'version'],
             where: {
                 id: articleId,
-                permission: MoreThanOrEqual(user.permission),
+                permission: LessThanOrEqual(userData.permission),
                 isActive: true
             }
         });
         if (!oldArticle) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
-
-        const newArticle = this.articleRepository.create(data);
-        // Modify attributes
-        data.id = articleId;
-        data.user = user.id;
-        data.version = oldArticle.version += 1;
-
-        if (data.tags?.length > 0) {
-            newArticle.tags = await this.tagRepository.find({
-                select: [ 'id', 'name', 'url' ],
-                where: { id: In(data.tags) }
-            });
-        }
-
         oldArticle.isActive = false;
 
+        // Compose the new article.
+        const tags = data.tags?.length > 0 ? await this.tagRepository.find({
+            select: [ 'id', 'name', 'url' ],
+            where: { id: In(data.tags) }
+        }): null;
+        const user = await this.userRepository.findOne(userData.id);
+        const newArticle = this.articleRepository.create({ 
+            ...data, 
+            user, 
+            tags,
+            id: articleId,
+            version: oldArticle.version += 1
+        });
+
+        // Updates both old article and new article with DB transaction.
         await this.articleRepository.manager.transaction(async transactionalEntityManager => {
             await transactionalEntityManager.save(newArticle);
             await transactionalEntityManager.save(oldArticle);

@@ -45,7 +45,7 @@ export class ArticlesEditController {
     }
 
     @Put('id/:id')
-    async updateArticle(@User('id') user, @Param('id') articleId: string, @Body() data: CreateArticleDto): Promise<Article> {
+    async updateArticle(@User() user, @Param('id') articleId: string, @Body() data: CreateArticleDto): Promise<Article> {
         return await this.service.updateArticle(articleId, data, user);
     }
 

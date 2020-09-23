@@ -41,7 +41,8 @@ export class SuggestionsService {
         });
         if (!article) throw new HttpException('Binded article was not found', HttpStatus.NOT_FOUND);
 
-        const suggestion = await this.suggestionRepository.preload({...data, article });
+        const suggestion = this.suggestionRepository.create({...data, article });
+        await this.suggestionRepository.save(suggestion);
         return suggestion;
     }
 
