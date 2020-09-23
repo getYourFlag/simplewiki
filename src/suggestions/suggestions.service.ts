@@ -1,15 +1,13 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Article } from "../articles/articles.entity";
 import { Suggestion } from "./suggestions.entity";
-import { Connection, DeepPartial, getRepository, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { SuggestionDeleteConfirmationDto, SuggestionsDto } from "./suggestions.dto";
 import { InjectRepository } from "@nestjs/typeorm";
-import { CreateArticleDto } from "src/articles/articles.dto";
 
 @Injectable()
 export class SuggestionsService {
     constructor(
-        private connection: Connection,
         @InjectRepository(Suggestion)
         private readonly suggestionRepository: Repository<Suggestion>,
         @InjectRepository(Article)
@@ -18,6 +16,7 @@ export class SuggestionsService {
 
     public async getAllSuggestions(page = 1): Promise<Suggestion[]> {
         return await this.suggestionRepository.find({
+            relations: ['article'],
             skip: (page - 1) * 20,
             take: 20
         });
@@ -26,13 +25,16 @@ export class SuggestionsService {
     public async getArticleSuggestion(articleId: string, page = 1): Promise<Suggestion[]> {
         return await this.suggestionRepository.find({
             where: { articleId },
+            relations: ['article'],
             skip: (page - 1) * 20,
             take: 20
         });
     }
 
     public async getSuggestion(uuid: string): Promise<Suggestion> {
-        return await this.suggestionRepository.findOne(uuid);
+        return await this.suggestionRepository.findOne(uuid, {
+            relations: ['article'],
+        });
     }
 
     public async submitSuggestion(data: SuggestionsDto): Promise<Suggestion> {
@@ -41,7 +43,7 @@ export class SuggestionsService {
         });
         if (!article) throw new HttpException('Binded article was not found', HttpStatus.NOT_FOUND);
 
-        const suggestion = this.suggestionRepository.create({...data, article });
+        const suggestion = this.suggestionRepository.create({ ...data, article });
         await this.suggestionRepository.save(suggestion);
         return suggestion;
     }

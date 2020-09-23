@@ -45,7 +45,7 @@ export class Article {
     @Column("boolean", { default: false })
     isPinned: boolean;
 
-    @ManyToMany(type => Tag, tag => tag.articles, { eager: true, onDelete: "CASCADE" })
+    @ManyToMany(type => Tag, tag => tag.articles, { onDelete: "CASCADE" })
     @JoinTable()
     tags: Tag[];
 

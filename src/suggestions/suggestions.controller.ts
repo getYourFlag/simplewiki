@@ -40,7 +40,7 @@ export class SuggestionsController {
         return await this.service.getSuggestion(uuid);
     }
 
-    @Delete(':id')
+    @Delete('id/:id')
     public async deleteSuggestion(@Param('id') uuid: string): Promise<SuggestionDeleteConfirmationDto> {
         return await this.service.deleteSuggestion(uuid);
     }

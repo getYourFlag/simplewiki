@@ -66,7 +66,7 @@ export class TagsService {
             }
         }) : [];
 
-        await this.tagRepository.update(uuid, { ...updateData, articles: newArticles });
+        await this.tagRepository.save({ id: uuid, ...updateData, articles: newArticles });
 
         return await this.getTagById(uuid);
     }

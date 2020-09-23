@@ -31,7 +31,7 @@ export class ArticlesService {
                 permission: MoreThanOrEqual(permission),
                 isActive: 1
             },
-            relations: ['user'],
+            relations: ['user', 'tags'],
             order: {
                 priority: 'DESC',
                 uuid: 'DESC'
@@ -49,7 +49,7 @@ export class ArticlesService {
                 'permission': MoreThanOrEqual(permission),
                 'isActive': 1
             },
-            relations: ['user', 'tag'],
+            relations: ['user', 'tags'],
             order: { 'version': 'DESC' },
         });
         if (!article) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
@@ -65,7 +65,7 @@ export class ArticlesService {
                 'permission': MoreThanOrEqual(permission),
                 'isActive': 1
             },
-            relations: ['user', 'tag'],
+            relations: ['user', 'tags'],
             order: { 'version': 'DESC' },
         });
         if (!article) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
@@ -103,6 +103,7 @@ export class ArticlesService {
             select: [ 'id', 'name', 'url' ],
             where: { id: In(data.tags) }
         }): null;
+
         const user = await this.userRepository.findOne(userData.id);
         const newArticle = this.articleRepository.create({ 
             ...data, 

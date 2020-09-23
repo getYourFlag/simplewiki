@@ -1,4 +1,4 @@
-import { Length, IsString } from 'class-validator';
+import { Length, IsString, IsUUID } from 'class-validator';
 import { Article } from 'src/articles/articles.entity';
 import { DeepPartial } from 'typeorm';
 
