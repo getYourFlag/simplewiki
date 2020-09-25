@@ -1,6 +1,4 @@
-import { Length, IsString, IsUUID } from 'class-validator';
-import { Article } from 'src/articles/articles.entity';
-import { DeepPartial } from 'typeorm';
+import { Length, IsString } from 'class-validator';
 
 export class SuggestionsDto {
     @Length(1, 50)

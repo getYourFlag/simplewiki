@@ -33,7 +33,7 @@ export class CreateUserDto {
     @IsOptional()
     @IsInt()
     @Min(0)
-    @Max(255)
+    @Max(127)
     permission: number;
 
 }
@@ -64,6 +64,12 @@ export class LoginDto {
     @IsNotEmpty()
     password: string;
     
+}
+
+export class deletedUserDto {
+    id: number;
+    username: string;
+    nick: string;
 }
 
 export class TokenDto {

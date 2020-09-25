@@ -1,7 +1,8 @@
 import { Controller, Get, Body, Param, Post, Put, Delete, UseGuards, Request, HttpException, HttpStatus } from '@nestjs/common';
-import { RegisterUserDto, UpdateUserDto, CreateUserDto } from './users.dto';
+import { RegisterUserDto, UpdateUserDto, CreateUserDto, deletedUserDto } from './users.dto';
 import { UsersService } from './users.service';
 import { User } from './users.entity';
+import { User as ReqUser } from './users.decorator';
 import { MinimumPermissionLevel } from '../auth/auth.decorator';
 import { JwtAuthGuard, PermissionGuard } from '../auth/auth.guard';
 import { PermissionLevel } from '../auth/auth.enum';
@@ -23,17 +24,17 @@ export class UserController {
     @MinimumPermissionLevel(PermissionLevel.USER)
     @UseGuards(JwtAuthGuard, PermissionGuard)
     @Put(':id')
-    async updateUser(@Request() req, @Param('id') id: number, @Body() updates: UpdateUserDto): Promise<User> {
-        if (req.user?.id !== id) throw new HttpException('Permissions denied', HttpStatus.FORBIDDEN);
-        return this.usersService.updateUser(id, updates);
+    async updateUser(@ReqUser('id') loggedInUserId: number, @Param('id') userId: number, @Body() updates: UpdateUserDto): Promise<User> {
+        if (loggedInUserId != userId) throw new HttpException('Permissions denied', HttpStatus.FORBIDDEN);
+        return this.usersService.updateUser(userId, updates);
     }
 
     @MinimumPermissionLevel(PermissionLevel.USER)
     @UseGuards(JwtAuthGuard, PermissionGuard)
     @Delete(':id')
-    async deleteUser(@Request() req, @Param('id') id: number, @Body('password') password: string): Promise<boolean> {
-        if (req.user?.id !== id) throw new HttpException('Permissions denied', HttpStatus.FORBIDDEN);
-        return this.usersService.deleteUser(id, password);
+    async deleteUser(@ReqUser('id') loggedInUserId: number, @Param('id') userId: number, @Body('password') password: string): Promise<deletedUserDto> {
+        if (loggedInUserId != userId) throw new HttpException('Permissions denied', HttpStatus.FORBIDDEN);
+        return this.usersService.deleteUser(userId, password);
     }
 }
 

@@ -6,7 +6,7 @@ import { ArticleDeleteConfirmationDto, CreateArticleDto } from './articles.dto';
 import { TokenDto } from '../users/users.dto';
 import { Tag } from '../tags/tags.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/users/users.entity';
+import { User } from '../users/users.entity';
 
 @Injectable()
 export class ArticlesService {

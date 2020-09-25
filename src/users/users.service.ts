@@ -1,7 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { User } from './users.entity';
 import { getRepository, Connection, MoreThanOrEqual, Repository } from 'typeorm';
-import { RegisterUserDto, UpdateUserDto, CreateUserDto } from './users.dto';
+import { RegisterUserDto, UpdateUserDto, CreateUserDto, deletedUserDto } from './users.dto';
 import * as bcrypt from 'bcrypt';
 import { PermissionLevel } from '../auth/auth.enum';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -21,8 +21,8 @@ export class UsersService {
 
     private async findUserByIdAndAuthorize(id: number, password: string): Promise<User> {
         const user = await this.userRepository.findOne(id, {
-                select: ['username', 'password', 'nick', 'permission', 'last_login', 'created_at', 'updated_at']
-            })
+            select: ['username', 'password', 'nick', 'permission', 'last_login', 'created_at', 'updated_at']
+        });
         if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
 
         if (!password) throw new HttpException('Password not embedded in request', HttpStatus.BAD_REQUEST);
@@ -74,11 +74,15 @@ export class UsersService {
         return await this.findUserById(id);
     }
 
-    async deleteUser(id: number, password: string): Promise<boolean> {
+    async deleteUser(id: number, password: string): Promise<deletedUserDto> {
         const user = await this.findUserByIdAndAuthorize(id, password);
 
         await this.userRepository.softRemove(user);
-        return true;
+        return {
+            id,
+            username: user.username,
+            nick: user.nick
+        };
     }
 
     async getUsersCount(minimumPermissionLevel = null): Promise<number> {
@@ -89,17 +93,19 @@ export class UsersService {
         return await this.userRepository.count(findOptions);
     }
 
-    async createDefaultUsers(): Promise<void> {
+    async createDefaultUsers(displayWarningMessage: boolean = true): Promise<User> {
         const adminCount = await this.getUsersCount(PermissionLevel.ADMIN);
         if (adminCount > 0) {
             return;
         };
 
-        console.log('No admin accounts were discovered within application, creating a default user for you.');
-        console.log('The account\'s username and password is DEFAULT.');
-        console.log('Please change the password of the account immediately after logging in the system.');
+        if (displayWarningMessage) {
+            console.log('No admin accounts were discovered within application, creating a default user for you.');
+            console.log('The account\'s username and password is DEFAULT.');
+            console.log('Please change the password of the account immediately after logging in the system.');
+        }
 
-        await this.createUser({
+        return await this.createUser({
             username: 'DEFAULT',
             password: 'DEFAULT',
             nick: 'DEFAULT ADMIN',

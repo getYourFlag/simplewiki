@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
@@ -22,7 +21,7 @@ import { SuggestionsModule } from './suggestions/suggestions.module';
     ],
 
     controllers: [],
-    providers: [AppService],
+    providers: [],
     exports: [],
 })
 
