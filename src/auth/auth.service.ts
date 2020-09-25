@@ -10,8 +10,7 @@ export class AuthService {
 
     constructor(
         private jwtService: JwtService,
-        @InjectRepository(User)
-        private readonly userRepository: Repository<User>
+        @InjectRepository(User) private readonly userRepository: Repository<User>
     ) {
     }
 
@@ -25,7 +24,9 @@ export class AuthService {
         const isAuthenticated = await bcrypt.compare(password, user.password);
         if (!isAuthenticated) return null;
 
-        await this.userRepository.update(user.id, { last_login: new Date().toString()})
+        await this.userRepository.update(user.id, { 
+            last_login: new Date() 
+        });
 
         return user;
     }
