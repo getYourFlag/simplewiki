@@ -1,4 +1,4 @@
-import { INestApplication } from "@nestjs/common";
+import { HttpStatus, INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import * as request from 'supertest';
 import { UsersModule } from '../src/users/users.module';
@@ -8,6 +8,14 @@ import { getConnection } from "typeorm";
 import { AuthModule } from "../src/auth/auth.module";
 import { UsersService } from "../src/users/users.service";
 import { AuthService } from "../src/auth/auth.service";
+import { PermissionLevel } from "../src/auth/auth.enum";
+
+const newUserData = {
+    username: 'newuser',
+    password: 'newuser',
+    nick: 'New User',
+    permission: 1
+}
 
 describe('Users Module', () => {
     let app: INestApplication;
@@ -41,12 +49,7 @@ describe('Users Module', () => {
             Service methods were directly called to prevent repeated testing of controller logic.
         */
         const defaultUser = await app.select(UsersModule).get(UsersService).createDefaultUsers(false);
-        const newUser = await app.select(UsersModule).get(UsersService).createUser({
-            username: 'newuser',
-            password: 'newuser',
-            nick: 'New User',
-            permission: 1
-        });
+        const newUser = await app.select(UsersModule).get(UsersService).createUser(PermissionLevel.OPERATOR, newUserData);
         defaultUserId = defaultUser.id;
         newUserId = newUser.id;
 
@@ -174,6 +177,14 @@ describe('Users Module', () => {
         expect(response.status).toBe(403);
     });
 
+    it('Cannot create account on non-admin accounts', async () => {
+        const response = await request(app.getHttpServer())
+            .post('/admin/users')
+            .set('Authorization', `Beaere ${newUserToken}`)
+            .send(newUserData);
+        expect(response.status).toBe(401);
+    });
+
     it('Can delete own account', async () => {
         const response = await request(app.getHttpServer())
             .delete(`/users/${newUserId}`)
@@ -185,6 +196,55 @@ describe('Users Module', () => {
         expect(response.body).toMatchObject({
             id: String(newUserId),
             username: 'newuser'
+        });
+    });
+
+    it('Cannot create account with higher permission that the current ADMIN account', async () => {
+        const jwtUserObject = await app.select(AuthModule).get(AuthService).generateToken({
+            id: 1,
+            username: 'DEFAULT',
+            permission: PermissionLevel.ADMIN
+        } as any);
+
+        const newUserData = {
+            username: 'created1',
+            password: 'created1',
+            nick: 'Created User',
+            permission: PermissionLevel.OPERATOR
+        }
+
+        const response = await request(app.getHttpServer())
+            .post('/admin/users')
+            .set('Authorization', `Bearer ${jwtUserObject.access_token}`)
+            .send(newUserData);
+
+        expect(response.status).toBe(HttpStatus.FORBIDDEN);
+    });
+
+    it('Can create account with same or lower permissions using ADMIN account', async () => {
+        const defaultUserToken = await app.select(AuthModule).get(AuthService).generateToken({
+            id: 1,
+            username: 'DEFAULT',
+            permission: 127
+        } as any);
+
+        const newUserData = {
+            username: 'created1',
+            password: 'created1',
+            nick: 'Created User',
+            permission: PermissionLevel.ADMIN
+        }
+
+        const response = await request(app.getHttpServer())
+            .post('/admin/users')
+            .set('Authorization', `Bearer ${defaultUserToken.access_token}`)
+            .send(newUserData);
+
+        expect(response.status).toBe(201);
+        expect(response.body).toMatchObject({
+            username: newUserData.username,
+            nick: newUserData.nick,
+            permission: newUserData.permission
         });
     });
 });

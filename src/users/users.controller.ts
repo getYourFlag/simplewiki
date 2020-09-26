@@ -45,7 +45,7 @@ export class UserManagementController {
     constructor(private usersService: UsersService) {};
 
     @Post()
-    async createUser(@Body() user: CreateUserDto): Promise<User> {
-        return this.usersService.createUser(user);
+    async createUser(@ReqUser('permission') permission: number, @Body() userData: CreateUserDto): Promise<User> {
+        return this.usersService.createUser(permission, userData);
     }
 }

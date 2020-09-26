@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { User } from './users.entity';
-import { getRepository, Connection, MoreThanOrEqual, Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { RegisterUserDto, UpdateUserDto, CreateUserDto, deletedUserDto } from './users.dto';
 import * as bcrypt from 'bcrypt';
 import { PermissionLevel } from '../auth/auth.enum';
@@ -38,22 +38,23 @@ export class UsersService {
         return users;
     }
 
-    async registerUser(user: RegisterUserDto): Promise<User> {
-        user.password = await bcrypt.hash(user.password, 10);
-
-        const newUser = this.userRepository.create(user);
-        newUser.permission = 1;
+    async registerUser(userData: RegisterUserDto): Promise<User> {
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+        const newUser = this.userRepository.create({ ...userData, password: hashedPassword });
+        newUser.permission = PermissionLevel.USER;
         
         await this.userRepository.save(newUser);
         return newUser;
     }
 
-    async createUser(userData: CreateUserDto): Promise<User> {
-        const hashedPassword = await bcrypt.hash(userData.password, 10);
-        const user = this.userRepository.create({ ...userData, password: hashedPassword });
-        await this.userRepository.save(user);
+    async createUser(permission: number, userData: CreateUserDto): Promise<User> {
+        if (permission < userData.permission) throw new HttpException('Permissions denied', HttpStatus.FORBIDDEN);
 
-        return user;
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+        const newUser = this.userRepository.create({ ...userData, password: hashedPassword });
+
+        await this.userRepository.save(newUser);
+        return newUser;
     }
 
     async updateUser(id: number, updates: UpdateUserDto): Promise<User> {
@@ -82,19 +83,15 @@ export class UsersService {
         };
     }
 
-    async getUsersCount(minimumPermissionLevel = null): Promise<number> {
-        const findOptions = minimumPermissionLevel ? {
+    async getUsersCount(minimumPermissionLevel = PermissionLevel.PUBLIC): Promise<number> {
+        return await this.userRepository.count({
             permission: MoreThanOrEqual(minimumPermissionLevel)
-        } : Object.create(null);
-
-        return await this.userRepository.count(findOptions);
+        });
     }
 
-    async createDefaultUsers(displayWarningMessage: boolean = true): Promise<User> {
+    async createDefaultUsers(displayWarningMessage: boolean = true): Promise<User> | null {
         const adminCount = await this.getUsersCount(PermissionLevel.ADMIN);
-        if (adminCount > 0) {
-            return;
-        };
+        if (adminCount > 0) return null;
 
         if (displayWarningMessage) {
             console.log('No admin accounts were discovered within application, creating a default user for you.');
@@ -102,7 +99,7 @@ export class UsersService {
             console.log('Please change the password of the account immediately after logging in the system.');
         }
 
-        return await this.createUser({
+        return await this.createUser(PermissionLevel.OPERATOR, {
             username: 'DEFAULT',
             password: 'DEFAULT',
             nick: 'DEFAULT ADMIN',
