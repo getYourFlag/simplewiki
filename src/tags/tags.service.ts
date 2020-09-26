@@ -23,20 +23,16 @@ export class TagsService {
     }
 
     public async getTagById(uuid: string): Promise<Tag> {
-        const tag = await this.tagRepository.findOne(uuid, {
+        return await this.tagRepository.findOneOrFail(uuid, {
             relations: ['articles']
         });
-        if (!tag) throw new HttpException('Tag not found', HttpStatus.NOT_FOUND);
-        return tag;
     }
 
     public async getTagByUrl(url: string): Promise<Tag> {
-        const tag = await this.tagRepository.findOne({
+        return await this.tagRepository.findOneOrFail({
             where: { url },
             relations: ['articles']
         });
-        if (!tag) throw new HttpException('Tag not found', HttpStatus.NOT_FOUND);
-        return tag;
     }
 
     public async createTag(data: TagsDto): Promise<Tag> {
@@ -54,8 +50,7 @@ export class TagsService {
     }
 
     public async updateTag(uuid: string, data: TagsDto): Promise<Tag> {
-        const tag = await this.getTagById(uuid);
-        if (!tag) throw new HttpException('Tag not found', HttpStatus.NOT_FOUND);
+        await this.getTagById(uuid); // Check if the tag to update was already existed.
 
         const { articles, ...updateData } = data;
         // Update many-to-many relations to articles.
@@ -72,8 +67,7 @@ export class TagsService {
     }
 
     public async deleteTag(uuid: string): Promise<TagDeleteConfirmationDto> {
-        const oldTag = await this.getTagById(uuid);
-        if (!oldTag) throw new HttpException('Tag not found', HttpStatus.NOT_FOUND);
+        await this.getTagById(uuid); // Check if the tag to delete was already existed.
 
         await this.tagRepository.softDelete(uuid);
         return {

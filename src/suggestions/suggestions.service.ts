@@ -32,16 +32,15 @@ export class SuggestionsService {
     }
 
     public async getSuggestion(uuid: string): Promise<Suggestion> {
-        return await this.suggestionRepository.findOne(uuid, {
+        return await this.suggestionRepository.findOneOrFail(uuid, {
             relations: ['article'],
         });
     }
 
     public async submitSuggestion(data: SuggestionsDto): Promise<Suggestion> {
-        const article = await this.articleRepository.findOne({
+        const article = await this.articleRepository.findOneOrFail({
             where: { id: data.article }
         });
-        if (!article) throw new HttpException('Binded article was not found', HttpStatus.NOT_FOUND);
 
         const suggestion = this.suggestionRepository.create({ ...data, article });
         await this.suggestionRepository.save(suggestion);
@@ -49,9 +48,8 @@ export class SuggestionsService {
     }
 
     public async deleteSuggestion(uuid: string): Promise<SuggestionDeleteConfirmationDto> {
-        const suggestion = await this.suggestionRepository.findOne(uuid);
-        if (!suggestion) throw new HttpException('Suggestion not found', HttpStatus.NOT_FOUND);
-
+        const suggestion = await this.suggestionRepository.findOneOrFail(uuid);
+        
         await this.suggestionRepository.softRemove(suggestion);
 
         return {

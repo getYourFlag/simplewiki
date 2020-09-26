@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { ArticlesModule } from './articles/articles.module';
 import { TagsModule } from './tags/tags.module';
 import { SuggestionsModule } from './suggestions/suggestions.module';
+import { APP_FILTER } from '@nestjs/core';
+import { EntityNotFoundFilter } from './common/exceptionHandlers/entityNotFound';
 
 @Module({
     imports: [
@@ -21,7 +23,12 @@ import { SuggestionsModule } from './suggestions/suggestions.module';
     ],
 
     controllers: [],
-    providers: [],
+    providers: [
+        {
+            provide: APP_FILTER,
+            useClass: EntityNotFoundFilter
+        }
+    ],
     exports: [],
 })
 

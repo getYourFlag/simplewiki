@@ -19,10 +19,10 @@ export class AuthService {
             select: ['id', 'username', 'password', 'permission'],
             where: { username }
         });
-        if (!user) return null;
+        if (!user) return null; // Returns 401 if user is not found.
 
         const isAuthenticated = await bcrypt.compare(password, user.password);
-        if (!isAuthenticated) return null;
+        if (!isAuthenticated) return null; // Returns 401 if password is incorrect.
 
         await this.userRepository.update(user.id, { 
             last_login: new Date() 

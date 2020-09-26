@@ -12,18 +12,15 @@ export class UsersService {
     constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) {}
 
     private async findUserById(id): Promise<User> {
-        const user = await this.userRepository.findOne(id, {
+        return await this.userRepository.findOneOrFail(id, {
             select: ['username', 'nick', 'permission', 'last_login', 'created_at', 'updated_at']
         });
-        if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-        return user;
     }
 
     private async findUserByIdAndAuthorize(id: number, password: string): Promise<User> {
-        const user = await this.userRepository.findOne(id, {
+        const user = await this.userRepository.findOneOrFail(id, {
             select: ['username', 'password', 'nick', 'permission', 'last_login', 'created_at', 'updated_at']
         });
-        if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
 
         if (!password) throw new HttpException('Password not embedded in request', HttpStatus.BAD_REQUEST);
         const isAuthorized = await bcrypt.compare(password, user.password);

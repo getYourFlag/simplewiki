@@ -42,8 +42,8 @@ export class ArticlesService {
     }
 
     public async getArticleById(permission: number, id: string): Promise<Article> {
-        const article = await this.articleRepository.findOne({
-            select: ['id', 'uuid', 'title', 'url', 'priority', 'content', 'created_at', 'updated_at'],
+        return await this.articleRepository.findOneOrFail({
+            select: ['id', 'uuid', 'title', 'url', 'priority', 'version', 'content', 'created_at', 'updated_at'],
             where: {
                 'id': id,
                 'permission': MoreThanOrEqual(permission),
@@ -52,14 +52,11 @@ export class ArticlesService {
             relations: ['user', 'tags'],
             order: { 'version': 'DESC' },
         });
-        if (!article) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
-
-        return article;
     }
 
     public async getArticleByUrl(permission: number, url: string): Promise<Article> {
-        const article = await this.articleRepository.findOne({
-            select: ['id', 'uuid', 'title', 'url', 'priority', 'content', 'created_at', 'updated_at'],
+        return await this.articleRepository.findOneOrFail({
+            select: ['id', 'uuid', 'title', 'url', 'priority', 'version', 'content', 'created_at', 'updated_at'],
             where: {
                 'url': url,
                 'permission': MoreThanOrEqual(permission),
@@ -68,9 +65,6 @@ export class ArticlesService {
             relations: ['user', 'tags'],
             order: { 'version': 'DESC' },
         });
-        if (!article) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
-        
-        return article;
     }
 
     public async createArticle(data: CreateArticleDto, userData: TokenDto): Promise<Article> {
@@ -88,14 +82,13 @@ export class ArticlesService {
     public async updateArticle(articleId: string, data: CreateArticleDto, userData: TokenDto): Promise<Article> {
         
         // Retrieve & Modify old article.
-        const oldArticle = await this.articleRepository.findOne({
+        const oldArticle = await this.articleRepository.findOneOrFail({
             where: {
                 id: articleId,
                 permission: LessThanOrEqual(userData.permission),
                 isActive: true
             }
         });
-        if (!oldArticle) throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
         oldArticle.isActive = false;
 
         // Compose the new article.
