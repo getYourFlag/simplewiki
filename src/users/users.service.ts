@@ -90,11 +90,11 @@ export class UsersService {
     }
 
     async createDefaultUsers(displayWarningMessage: boolean = true): Promise<User> | null {
-        const adminCount = await this.getUsersCount(PermissionLevel.ADMIN);
+        const adminCount = await this.getUsersCount(PermissionLevel.OPERATOR);
         if (adminCount > 0) return null;
 
         if (displayWarningMessage) {
-            console.log('No admin accounts were discovered within application, creating a default user for you.');
+            console.log('No operator accounts were discovered within application, creating a default user for you.');
             console.log('The account\'s username and password is DEFAULT.');
             console.log('Please change the password of the account immediately after logging in the system.');
         }
@@ -103,7 +103,7 @@ export class UsersService {
             username: 'DEFAULT',
             password: 'DEFAULT',
             nick: 'DEFAULT ADMIN',
-            permission: 127
+            permission: PermissionLevel.OPERATOR
         });
     }
 }
