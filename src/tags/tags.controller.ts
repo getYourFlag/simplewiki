@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { MinimumPermissionLevel } from '../auth/auth.decorator';
 import { PermissionLevel } from '../auth/auth.enum';
 import { JwtAuthGuard, PermissionGuard } from '../auth/auth.guard';
@@ -12,8 +12,8 @@ export class TagsController {
     constructor(private service: TagsService) {}
 
     @Get()
-    async getTagList(): Promise<Tag[]> {
-        return await this.service.getTagList();
+    async getTagList(@Query('page') page: number = 1): Promise<Tag[]> {
+        return await this.service.getTagList(page);
     }
 
     @Get('id/:id')
@@ -24,6 +24,11 @@ export class TagsController {
     @Get('url/:url')
     async getTagByName(@Param('url') url: string): Promise<Tag> {
         return await this.service.getTagByUrl(url);
+    }
+
+    @Get('search/:text')
+    async getTagBySearch(@Param('text') text: string, @Query('page') page: number = 1) {
+        return await this.service.searchTag(text, page);
     }
 
 }

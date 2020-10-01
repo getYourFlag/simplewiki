@@ -1,24 +1,31 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Article } from "../articles/articles.entity";
-import { In, Repository } from "typeorm";
+import { In, Like, Repository } from "typeorm";
 import { TagDeleteConfirmationDto, TagsDto } from "./tags.dto";
 import { Tag } from "./tags.entity";
 import { InjectRepository } from "@nestjs/typeorm";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class TagsService {
 
+    private readonly tagsPerPage;
+
     constructor(
+        configService: ConfigService,
         @InjectRepository(Tag)
         private readonly tagRepository: Repository<Tag>,
         @InjectRepository(Article)
         private readonly articleRepository: Repository<Article>
     ) {
+        this.tagsPerPage = configService.get<number>('RECORDS_PER_PAGE', 20);
     }
 
-    public async getTagList(): Promise<Tag[]> {
+    public async getTagList(page: number = 1): Promise<Tag[]> {
         return await this.tagRepository.find({
-            select: ['id', 'name', 'url']
+            select: ['id', 'name', 'url'],
+            take: this.tagsPerPage,
+            skip: this.tagsPerPage * (page - 1)
         });
     }
 
@@ -33,6 +40,17 @@ export class TagsService {
             where: { url },
             relations: ['articles']
         });
+    }
+
+    public async searchTag(searchText: string, page: number = 1): Promise<Tag[]> {
+        return await this.tagRepository.find({
+            where: {
+                name: Like(`%${searchText}%`),
+            },
+            relations: ['articles'],
+            take: this.tagsPerPage,
+            skip: this.tagsPerPage * (page - 1)
+        })
     }
 
     public async createTag(data: TagsDto): Promise<Tag> {

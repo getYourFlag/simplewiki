@@ -15,20 +15,29 @@ export class ArticlesViewController {
     constructor(private service: ArticlesService) {}
     
     @Get()
-    async getArticleList(@User('permission') permission: number = PermissionLevel.PUBLIC, @Query('page') page = 1) {
+    async getArticleList(@User('permission') permission: number = PermissionLevel.PUBLIC, @Query('page') page = 1): Promise<Article[]> {
         if (!Number.isInteger(page) || page < 1) throw new HttpException('Invalid page number', HttpStatus.BAD_REQUEST);
 
-        return this.service.getArticlesList(permission, page);
+        return await this.service.getArticlesList(permission, page);
     }
 
     @Get('id/:id')
-    async getArticleById(@User('permission') permission: number = PermissionLevel.PUBLIC, @Param('id') uuid: string) {
-        return this.service.getArticleById(permission, uuid);
+    async getArticleById(@User('permission') permission: number = PermissionLevel.PUBLIC, @Param('id') uuid: string): Promise<Article> {
+        return await this.service.getArticleById(permission, uuid);
     }
 
     @Get('url/:url')
-    async getArticleByUrl(@User('permission') permission: number = PermissionLevel.PUBLIC, @Param('url') url: string) {
-        return this.service.getArticleByUrl(permission, url);
+    async getArticleByUrl(@User('permission') permission: number = PermissionLevel.PUBLIC, @Param('url') url: string): Promise<Article> {
+        return await this.service.getArticleByUrl(permission, url);
+    }
+
+    @Get('search/:search')
+    async getARticleBySearch(
+        @User('permission') permission: number = PermissionLevel.PUBLIC,
+        @Param('search') text: string,
+        @Query('page') page: number = 1
+    ): Promise<Article[]> {
+        return await this.service.searchArticle(permission, text, page);
     }
 
 }
